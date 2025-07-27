@@ -1,0 +1,10 @@
+# ignore everything
+*
+
+# allow only agent-related files
+!/.python-version
+!/main.py
+!/pyproject.toml
+!/uv.lock
+
+!/receipt_agent

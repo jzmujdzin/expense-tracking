@@ -1,1 +1,11 @@
 3.13
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    $APP_URL/apps/receipt_agent/users/user_123/sessions/session_abc \
+    -H "Content-Type: application/json" \
+    -d '{"state": {"preferred_language": "English", "visit_count": 1}}'
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    $APP_URL/run_sse \
+    -H "Content-Type: application/json" \
+    -d @request.json
