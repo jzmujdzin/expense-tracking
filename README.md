@@ -12,8 +12,8 @@ TODO:
 - [ ] Discover intents: check what user wants to do (photo + prompt) -> to use within receipt handling / expense tracking
 
 #### Receipt handling
-- [ ] Receipt upload
-- [ ] Receipt parsing & itemization
+- [x] Receipt upload
+- [x] Receipt parsing & itemization
 - [ ] Receipt storage
 
 #### Expense tracking
