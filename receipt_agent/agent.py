@@ -1,7 +1,7 @@
 from google.adk.agents import Agent
 
 from .types import Receipt
-from .prompts import receipt_itemization_agent_prompt
+from .prompt import receipt_itemization_agent_prompt
 from tools.gcs import upload_image_to_gcs
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models import LlmRequest
