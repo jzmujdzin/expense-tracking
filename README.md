@@ -14,7 +14,7 @@ TODO:
 #### Receipt handling
 - [x] Receipt upload
 - [x] Receipt parsing & itemization
-- [ ] Receipt storage
+- [x] Receipt storage
 
 #### Expense tracking
 - [ ] Expense categorization
