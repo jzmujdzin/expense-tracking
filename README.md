@@ -24,3 +24,7 @@ TODO:
 
 #### Expense visualization
 - [ ] Expense overview, based on categories etc. 
+
+#### Splitwise integration
+- [ ] Rework create expense to work using pydantic models
+- [ ] integrate with agent
