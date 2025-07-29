@@ -1,1 +1,1 @@
-from .splitwise import Splitwise
+from .splitwise import Splitwise as Splitwise

@@ -7,7 +7,7 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.models import LlmRequest
 from loguru import logger
 
-def upload_receipt_to_gcs(callback_context: CallbackContext, llm_request: LlmRequest):
+def upload_receipt_to_gcs(callback_context: CallbackContext, llm_request: LlmRequest): # pylint: disable=unused-argument
     """
     Callback function to upload the receipt image to Google Cloud Storage.
 

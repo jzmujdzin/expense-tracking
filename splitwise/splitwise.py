@@ -3,7 +3,8 @@ import httpx
 from typing import Dict, Any, List, Optional
 import json
 from loguru import logger
-from .types import SplitwiseMember, SplitwiseGroup
+from .types import SplitwiseMember, SplitwiseGroup, SplitwiseExpense, RequestMethod, SplitwiseApiPaths, \
+    SplitwiseExpenseParticipant
 
 
 class Splitwise:
@@ -70,7 +71,7 @@ class Splitwise:
             A list of dictionaries, where each dictionary represents a group.
         """
         logger.info("Fetching Splitwise groups...")
-        response_data = self._request("GET", "/get_groups")
+        response_data = self._request(RequestMethod.GET, SplitwiseApiPaths.GET_GROUPS)
         return [SplitwiseGroup(**group) for group in response_data.get("groups", [])]
 
     def _get_group_id_by_name(self, group_name: str) -> Optional[int]:
@@ -103,7 +104,7 @@ class Splitwise:
             A list of dictionaries, where each dictionary represents a member of the group.
         """
         logger.info(f"Fetching members for Splitwise group ID: {group_id}")
-        response_data = self._request("GET", f"/get_group/{group_id}")
+        response_data = self._request(RequestMethod.GET, SplitwiseApiPaths.GET_GROUP.format(group_id=group_id))
         return SplitwiseGroup(**response_data.get("group", {}))
 
     def get_group_by_name(self, group_name: str) -> SplitwiseGroup | None:
@@ -121,63 +122,88 @@ class Splitwise:
             return self._get_group(group_id)
         return None
 
-    def get_current_user(self) -> Optional[Dict[str, Any]]:
+    def get_current_user(self) -> SplitwiseMember:
         logger.info("Fetching current Splitwise user...")
-        response_data = self._request("GET", "/get_current_user")
-        return response_data.get("user")
+        response_data = self._request(RequestMethod.GET, SplitwiseApiPaths.GET_CURRENT_USER)
+        return SplitwiseMember(**response_data.get("user"))
 
-    def create_expense(
+    def get_friends(self) -> List[SplitwiseMember]:
+        """
+        Fetches a list of friends of the authenticated user.
+        API Doc: https://dev.splitwise.com/#tag/friends/paths/~1get_friends/get
+
+        Returns:
+            A list of SplitwiseMember objects representing the user's friends.
+        """
+        logger.info("Fetching Splitwise friends...")
+        response_data = self._request(RequestMethod.GET, SplitwiseApiPaths.GET_FRIENDS)
+        return [SplitwiseMember(**friend) for friend in response_data.get("friends", [])]
+
+    def _handle_direct_expense_participants(
         self,
+        friend_id: int,
+        friend_paid_share: float,
+        friend_owed_share: float,
         cost: float,
-        description: str,
-        split_equally: Optional[bool] = None,
-        group_id: Optional[int] = None,
-        currency_code: str = "PLN",
-        date: Optional[str] = None,
-        users: Optional[List[Dict[str, Any]]] = None,
-        category_id: Optional[int] = None,
-        details: Optional[str] = None,
-        receipt_image_url: Optional[str] = None
+        split_equally: bool
+    ) -> List[SplitwiseExpenseParticipant]:
+        """
+        Handles the participants for a direct expense, ensuring the shares are calculated correctly.
+
+        Args:
+            friend_id: The ID of the friend who paid.
+            friend_paid_share: The amount the friend paid.
+            cost: The total cost of the expense.
+            split_equally: Whether to split the expense equally among participants.
+
+        Returns:
+            A list of SplitwiseExpenseParticipant objects.
+        """
+        my_user_id = self.get_current_user().id
+        if split_equally:
+            cost_per_person = cost / 2
+            friend_owed_share = cost_per_person
+            my_owed_share = cost_per_person
+            my_paid_share = cost - friend_paid_share
+        else:
+            my_paid_share = cost - friend_paid_share
+            my_owed_share = cost - friend_owed_share
+        return [
+            SplitwiseExpenseParticipant(user_id=friend_id, paid_share=friend_paid_share, owed_share=friend_owed_share),
+            SplitwiseExpenseParticipant(user_id=my_user_id, paid_share=my_paid_share, owed_share=my_owed_share),
+        ]
+
+    def create_direct_expense_by_name(self, name: str, cost: float, description: str,
+                                      friend_paid_share: Optional[float] = 0.0,
+                                      friend_owed_share: Optional[float] = 0.0,
+                                      currency_code: str = "PLN", split_equally: bool = True) -> Dict[str, Any]:
+        friends = self.get_friends()
+        friend_id = None
+        for friend in friends:
+            if name.lower() == f"{friend.first_name} {friend.last_name}".lower():
+                logger.debug(f"Found friend with name '{name}' in Splitwise.")
+                friend_id = friend.id
+                break
+        if friend_id is None:
+            raise ValueError(f"Friend '{name}' not found in Splitwise.")
+        expense = SplitwiseExpense(
+            cost=cost,
+            description=description,
+            currency_code=currency_code,
+            participants=self._handle_direct_expense_participants(friend_id, friend_paid_share, friend_owed_share, cost, split_equally),
+            split_equally=False # dont use split_equally for direct expenses
+        )
+        return self._create_expense(expense)
+
+    def _create_expense(
+        self,
+        expense: SplitwiseExpense
     ) -> Dict[str, Any]:
         """
         Creates a new expense in Splitwise.
         """
-        logger.info(f"Creating Splitwise expense: {description} (Cost: {cost} {currency_code})")
 
-        payload = {
-            "cost": f"{cost:.2f}",
-            "description": description,
-            "currency_code": currency_code,
-        }
-
-        if group_id is not None:
-            payload["group_id"] = group_id
-        if date is not None:
-            payload["date"] = date
-        if category_id is not None:
-            payload["category_id"] = category_id
-        if details is not None:
-            payload["details"] = details
-        if receipt_image_url is not None:
-            payload["receipt_image"] = receipt_image_url
-
-        if split_equally is not None:
-            payload["split_equally"] = str(split_equally).lower()
-
-        # Handle 'users' parameter for custom splits (already correctly implemented)
-        if users:
-            for i, user_data in enumerate(users):
-                payload[f"users___{i}___user_id"] = user_data["user_id"]
-                payload[f"users___{i}___paid_share"] = f"{user_data['paid_share']:.2f}"
-                if "owed_share" in user_data:
-                    payload[f"users___{i}___owed_share"] = f"{user_data['owed_share']:.2f}"
-                # Add other user properties if needed, e.g., first_name, last_name, email for new users
-                if "first_name" in user_data:
-                    payload[f"users___{i}___first_name"] = user_data["first_name"]
-                if "last_name" in user_data:
-                    payload[f"users___{i}___last_name"] = user_data["last_name"]
-                if "email" in user_data:
-                    payload[f"users___{i}___email"] = user_data["email"]
-
-        response_data = self._request("POST", "/create_expense", data=payload)
+        payload = expense.to_api_payload()
+        logger.debug(f"Creating expense with payload: {json.dumps(payload, indent=2)}")
+        response_data = self._request(RequestMethod.POST, SplitwiseApiPaths.CREATE_EXPENSE, data=payload)
         return response_data.get("expenses", [])[0] if response_data.get("expenses") else response_data
