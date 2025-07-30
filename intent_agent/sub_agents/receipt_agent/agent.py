@@ -29,11 +29,12 @@ def upload_receipt_to_gcs(callback_context: CallbackContext, llm_request: LlmReq
                 upload_image_to_gcs(part.inline_data.data)
                 return
 
-root_agent = Agent(
+receipt_itemization_agent = Agent(
     name="receipt_itemization_agent",
     model="gemini-2.0-flash",
     description="Receipt itemization agent",
     instruction=receipt_itemization_agent_prompt,
     before_model_callback=upload_receipt_to_gcs,
     output_schema=Receipt,
+    output_key="receipt_items",
 )

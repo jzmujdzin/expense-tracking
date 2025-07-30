@@ -149,10 +149,13 @@ class Splitwise:
     ) -> List[SplitwiseExpenseParticipant]:
         """
         Handles the participants for a direct expense, ensuring the shares are calculated correctly.
+        This method calculates the paid and owed shares for both the user and their friend based on whether the expense is split equally or not.
 
         Args:
             friend_id: The ID of the friend who paid.
             friend_paid_share: The amount the friend paid.
+            friend_owed_share: The amount the friend owes, in total, if not splitting equally.
+                This is the amount of their expense on their receipt, even if they paid
             cost: The total cost of the expense.
             split_equally: Whether to split the expense equally among participants.
 
@@ -177,6 +180,20 @@ class Splitwise:
                                       friend_paid_share: Optional[float] = 0.0,
                                       friend_owed_share: Optional[float] = 0.0,
                                       currency_code: str = "PLN", split_equally: bool = True) -> Dict[str, Any]:
+        """
+        Creates a direct expense in Splitwise for a specific friend by their name.
+        This method searches for the friend by name, constructs the expense details, and calls the Splitwise API to create the expense.
+        Args:
+            name (str): The name of the friend to whom the expense is attributed.
+            cost (float): The total cost of the expense.
+            description (str): A brief description of the expense.
+            friend_paid_share (float, optional): The amount the friend paid for the expense. Defaults to 0.0.
+                Should be either set to 0, in case I paid, or the total cost, in case the friend paid.
+            friend_owed_share (float, optional): The amount the friend owes for the expense. Defaults to 0.0.
+                Only needed in case the expense is not split equally.
+            currency_code (str, optional): The currency code for the expense. Defaults to "PLN".
+            split_equally (bool, optional): Whether to split the expense equally among participants. Defaults to True.
+        """
         friends = self.get_friends()
         friend_id = None
         for friend in friends:
@@ -193,7 +210,8 @@ class Splitwise:
             participants=self._handle_direct_expense_participants(friend_id, friend_paid_share, friend_owed_share, cost, split_equally),
             split_equally=False # dont use split_equally for direct expenses
         )
-        return self._create_expense(expense)
+        logger.info(expense)
+        # return self._create_expense(expense)
 
     def _create_expense(
         self,

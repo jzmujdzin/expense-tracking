@@ -8,6 +8,7 @@ build:
 
 run: build
 	@docker run --rm \
+	--name exp_agent \
 	-p ${PORT}:${PORT} \
 	-e PORT=${PORT} \
 	-e GOOGLE_GENAI_USE_VERTEXAI=TRUE \
@@ -17,5 +18,8 @@ run: build
 	-v $(HOME)/.config/gcloud/application_default_credentials.json:/home/myuser/.config/gcloud/application_default_credentials.json \
 	exp_agent
 
+stop:
+	@docker stop exp_agent || true
+
 lint:
-	@uv run ruff check
+	@uv run ruff check --fix

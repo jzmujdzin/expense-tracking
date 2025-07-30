@@ -1,16 +1,7 @@
-from enum import Enum
-from datetime import datetime
-
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, Field
+from typing import Literal
 
 
-class ReceiptCurrency(Enum):
-    """
-    Enum for supported receipt currencies
-    """
-
-    EUR = "EUR"
-    PLN = "PLN"
 
 
 class ReceiptItem(BaseModel):
@@ -30,8 +21,8 @@ class Receipt(BaseModel):
 
     shop_name: str
     items: list[ReceiptItem]
-    date: datetime
-    currency: ReceiptCurrency
+    date: str = Field(..., description="Date of the receipt in YYYY-mm-dd format")
+    currency: Literal["EUR", "PLN"] = Field(..., description="Supported currency code")
 
     @computed_field
     @property
