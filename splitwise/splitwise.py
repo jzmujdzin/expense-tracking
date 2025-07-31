@@ -22,7 +22,7 @@ class Splitwise:
             access_token (str | None): The Bearer token for authentication.
         """
         if not access_token:
-            access_token = os.getenv("SPLITWISE_API_KEY")
+            access_token = os.getenv("SPLITWISE_API_KEY").replace(r"\r", "")
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Accept": "application/json"
