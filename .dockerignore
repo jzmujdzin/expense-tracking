@@ -8,6 +8,6 @@
 !/uv.lock
 
 !/receipt_agent
-!/intent_agent
+!/splitwise_expense_handler
 !/splitwise
 !/tools

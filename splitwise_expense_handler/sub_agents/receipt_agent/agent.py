@@ -23,6 +23,8 @@ def upload_receipt_to_gcs(callback_context: CallbackContext, llm_request: LlmReq
             if content.role != 'user':
                 continue
             for part in content.parts:
+                if part.text is not None and part.text.strip() != '':
+                    callback_context.state["splitting_instructions"] = part.text.strip()
                 if part.inline_data is None:
                     continue
                 logger.info("Uploading receipt image to GCS")

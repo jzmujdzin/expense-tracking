@@ -7,6 +7,8 @@ You are an expert in expense management, specifically designed to categorize exp
 * **Identify Group Expense Indicators:**
     * **Multiple Individuals:** If the 'sharing_instructions' explicitly name **two or more individuals** who are involved in the expense (e.g., "Alice and Bob," "John, Sarah, and Emily"), it is a **group expense**.
     * **Group Names:** If a **named group** (e.g., "Team Lunch," "Vacation Crew," "Family Trip," "Roommates") is mentioned in the prompt or 'sharing_instructions', it is a **group expense**.
+    * **Baseline case:** The names will be in Polish. If you receive a prompt, e.g. "Split this expense with Jan Kowalski", it is a **direct expense** with "Jan Kowalski".
+    * **No Group Indicators:** If the prompt does not mention multiple individuals or a group name, treat it as a **direct expense**.
 
 **Action Flow:**
 
@@ -16,6 +18,9 @@ You are an expert in expense management, specifically designed to categorize exp
     * If it's a **group expense**, call the `group_expense_handler` tool.
     
 You do not need to add any additional information, as everything will be passed on in context.
+
+Here is the user's prompt:
+{splitting_instructions}
 """
 
 direct_expense_agent_prompt = """
@@ -28,13 +33,16 @@ Here is the itemized receipt:
 
 Its total cost is {receipt_items.total_amount}
 
+User's prompt:
+{splitting_instructions}
+
 ### Expense Information Extraction:
 
 From the user's prompt, you must extract the following:
 
 * **Friend's Name:** Identify the name of the friend involved in the expense.
 * **Total Cost:** Determine the total monetary value of the receipt.
-* **Description:** Summarize the nature of the expense.
+* **Description:** Summarize the nature of the expense in Polish. If user did not provide a description in their prompt, think of your own 2-3 word description in Polish that fits the expense.
 * **Payer:** Determine who initially paid for the expense (either "me" (the user) or "the friend").
 * **Split Method:** Determine if the expense should be split **equally** or **not equally**.
 

@@ -11,5 +11,3 @@ Your task is to:
 * `QUERY_EXPENSES`: User wants to view past expenses or get an overview. (e.g., "Show my spending on food last month.", "What did I spend at Supermart this week?")
 * `OTHER`: Any other intent not covered.
 """
-
-# check if receipt itemization agent has received an image

@@ -1,30 +1,20 @@
-from ..receipt_agent import receipt_itemization_agent
 from .prompt import expense_handling_agent_prompt, direct_expense_agent_prompt
 
-from google.adk.agents import Agent, SequentialAgent
+from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
 from splitwise import Splitwise
 
 splitwise = Splitwise()
 
+# group expense logic:
+# group expense handler:
 # lookup group on splitwise
 # retrieve group members
-# using itemized receipt, list of people involved, and user prompt, [SAVE RECEIPT FROM FIRST AGENT]
+# using itemized receipt ({receipt_items}), list of people involved (from user prompt), and user prompt,
 # determine who consumed or is responsible for each item.
-# If specific assignments are mentioned in the 'sharing_instructions', use them. [SAVE THEM FROM INITIAL AGENT]
-# Otherwise, suggest an equal split among 'assigned_people'.
-
-# retrieve itemized receipt
-
-# then: check whether the expense is direct or group expense
-# if group expense, lookup group on splitwise. retrieve group members.
-
-# using itemized receipt, list of people involved, and user prompt,
-# determine who consumed or is responsible for each item.
-# If specific assignments are mentioned in the 'sharing_instructions', use them.
+# If specific assignments are mentioned in the 'sharing_instructions' (user prompt), use them.
 # Otherwise, suggest an equal split among 'assigned_people'.
 # usually, 1 person pays for the expense and the rest owe them.
-
 # then: create expense on splitwise
 
 
@@ -44,9 +34,3 @@ expense_handling_agent = Agent(
     instruction=expense_handling_agent_prompt,
     tools=[AgentTool(direct_expense_handler), AgentTool(group_expense_handler)],
 )
-
-expense_agent = SequentialAgent(name="receipt_to_expense_handler",
-                                sub_agents=[
-    receipt_itemization_agent,
-    # expense_handling_agent
-])

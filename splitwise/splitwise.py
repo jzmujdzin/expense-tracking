@@ -210,8 +210,8 @@ class Splitwise:
             participants=self._handle_direct_expense_participants(friend_id, friend_paid_share, friend_owed_share, cost, split_equally),
             split_equally=False # dont use split_equally for direct expenses
         )
-        logger.info(expense)
-        # return self._create_expense(expense)
+        logger.debug(f"Creating direct expense with {name} for receipt: {expense}")
+        return self._create_expense(expense)
 
     def _create_expense(
         self,

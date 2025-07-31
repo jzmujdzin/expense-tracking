@@ -15,6 +15,7 @@ run: build
 	-e GOOGLE_CLOUD_PROJECT=${GCP_PROJECT} \
 	-e GOOGLE_CLOUD_LOCATION=${GCP_LOCATION} \
 	-e GCS_BUCKET=${GCP_BUCKET} \
+	-e SPLITWISE_API_KEY=$${SPLITWISE_API_KEY} \
 	-v $(HOME)/.config/gcloud/application_default_credentials.json:/home/myuser/.config/gcloud/application_default_credentials.json \
 	exp_agent
 
