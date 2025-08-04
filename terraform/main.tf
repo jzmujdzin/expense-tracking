@@ -44,15 +44,15 @@ data "google_artifact_registry_docker_image" "default" {
 }
 
 resource "google_project_service" "cloudrun" {
-  service                    = "run.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
+  service            = "run.googleapis.com"
+  project            = var.project_id
+  disable_on_destroy = false
 }
 
 resource "google_project_service" "artifact_registry" {
-  service                    = "artifactregistry.googleapis.com"
-  disable_on_destroy         = false
-  disable_dependent_services = false
+  service            = "artifactregistry.googleapis.com"
+  project            = var.project_id
+  disable_on_destroy = false
 }
 
 
@@ -87,12 +87,8 @@ resource "google_cloud_run_v2_service" "expense_tracker" {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
   }
-  ingress = "INGRESS_TRAFFIC_ALL"
-
-  depends_on = [
-    google_project_service.cloudrun,
-    google_project_service.artifact_registry
-  ]
+  ingress             = "INGRESS_TRAFFIC_ALL"
+  deletion_protection = false
 }
 
 
