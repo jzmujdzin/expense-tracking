@@ -1,10 +1,10 @@
-import os
 import httpx
 from typing import Dict, Any, List, Optional
 import json
 from loguru import logger
 from .types import SplitwiseMember, SplitwiseGroup, SplitwiseExpense, RequestMethod, SplitwiseApiPaths, \
     SplitwiseExpenseParticipant
+from tools.secrets import SecretsManager
 
 
 class Splitwise:
@@ -22,7 +22,8 @@ class Splitwise:
             access_token (str | None): The Bearer token for authentication.
         """
         if not access_token:
-            access_token = os.getenv("SPLITWISE_API_KEY").replace(r"\r", "")
+            sm = SecretsManager()
+            access_token = sm.get_secret("splitwise_api_key")
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Accept": "application/json"
