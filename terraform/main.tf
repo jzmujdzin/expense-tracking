@@ -5,15 +5,15 @@ provider "google" {
 }
 
 resource "google_service_account" "service_account" {
-  account_id   = var.service_name
-  display_name = "Expense Tracking Cloud Run Service Account"
+  account_id                   = var.service_name
+  display_name                 = "Expense Tracking Cloud Run Service Account"
   create_ignore_already_exists = true
 }
 
 resource "google_cloud_run_v2_service_iam_member" "invoker" {
   location = google_cloud_run_v2_service.expense_tracker.location
   name     = google_cloud_run_v2_service.expense_tracker.name
-    project  = var.project_id
+  project  = var.project_id
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.service_account.email}"
 }
@@ -38,7 +38,7 @@ resource "google_project_iam_member" "vertex_ai_user" {
 
 
 data "google_artifact_registry_docker_image" "default" {
-  location = var.location
+  location      = var.location
   repository_id = var.repository_id
   image_name    = var.image_name
 }
@@ -64,22 +64,22 @@ resource "google_cloud_run_v2_service" "expense_tracker" {
     service_account = google_service_account.service_account.email
     containers {
       image = data.google_artifact_registry_docker_image.default.self_link
-        env {
-            name  = "GOOGLE_CLOUD_PROJECT"
-            value = var.project_id
-        }
-        env {
-            name  = "GOOGLE_CLOUD_LOCATION"
-            value = var.location
-        }
-        env {
-            name  = "GCS_BUCKET"
-            value = var.bucket_name
-        }
-        env {
-            name  = "GOOGLE_GENAI_USE_VERTEXAI"
-            value = "TRUE"
-        }
+      env {
+        name  = "GOOGLE_CLOUD_PROJECT"
+        value = var.project_id
+      }
+      env {
+        name  = "GOOGLE_CLOUD_LOCATION"
+        value = var.location
+      }
+      env {
+        name  = "GCS_BUCKET"
+        value = var.bucket_name
+      }
+      env {
+        name  = "GOOGLE_GENAI_USE_VERTEXAI"
+        value = "TRUE"
+      }
     }
 
   }
